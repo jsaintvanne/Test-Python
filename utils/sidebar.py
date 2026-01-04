@@ -6,8 +6,10 @@ def render_sidebar():
     """Affiche le menu de navigation et le formulaire de connexion dans la barre latérale"""
     with st.sidebar:
         st.header("Navigation")
-        st.page_link("pages/1_stats.py", label="📊 Statistiques")
-        st.page_link("pages/2_data_sciences.py", label="📈 Data Science")
+        st.page_link("app.py", label="🏠 Accueil")
+        st.page_link("pages/1_lucile.py", label="💰 Compte Lucile")
+        st.page_link("pages/2_julien.py", label="💰 Compte Julien")
+        st.page_link("pages/3_commun.py", label="💑 Compte Commun")
         
         st.markdown("---")
         

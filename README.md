@@ -1,87 +1,58 @@
-# Test Application Python
+# Application de Gestion de Comptes
 
-## Installation
+Application Streamlit pour gérer les comptes personnels et communs.
 
-### Sous Windows 11
+## 🚀 Fonctionnalités
 
-🔍 Étape 1 – Vérifier si Python est installé
+- **Authentification requise** : Toutes les pages nécessitent une connexion
+- **Page d'accueil** : Tableau de bord avec récapitulatif des dépenses mensuelles
+- **Compte Lucile** : Gestion des transactions personnelles de Lucile
+- **Compte Julien** : Gestion des transactions personnelles de Julien
+- **Compte Commun** : Gestion des dépenses communes
+- **Page de connexion** : Authentification des utilisateurs
 
-Dans PowerShell ou Invite de commandes, tape :
+## 📋 Pages
 
-python --version
+1. **Accueil (app.py)** : Vue d'ensemble avec statistiques globales et récapitulatif mensuel
+2. **Compte Lucile** : Tableau de transactions pour Lucile
+3. **Compte Julien** : Tableau de transactions pour Julien
+4. **Compte Commun** : Tableau de transactions communes
+5. **Connexion** : Page de connexion
 
+## 🔐 Authentification
 
-ou
+Les utilisateurs doivent être connectés pour accéder aux pages. La connexion peut se faire via :
+- La barre latérale (sidebar)
+- La page de connexion dédiée
 
-py --version
+## 🛠️ Installation
 
-Résultats possibles
+```bash
+pip install -r requirements.txt
+```
 
-✅ Python 3.x.x → Python est installé
+## ▶️ Lancement
 
-❌ commande inconnue → Python n’est pas installé ou mal configuré
+```bash
+streamlit run app.py
+```
 
-✅ Cas 1 : python ou py fonctionne
+## 👥 Utilisateurs
 
-Sous Windows, pip s’utilise souvent comme ceci :
+Les utilisateurs sont définis dans le fichier `users.json`.
 
-Essaie :
-python -m pip install streamlit
+## 📊 Fonctionnalités des pages de comptes
 
+Chaque page de compte (Lucile, Julien, Commun) permet de :
+- Ajouter des transactions avec date, description, montant et catégorie
+- Visualiser le solde, les revenus et les dépenses
+- Consulter l'historique des transactions
+- Effacer toutes les transactions
 
-ou
+## 🏠 Page d'accueil
 
-py -m pip install streamlit
-
-
-👉 Dans 90 % des cas, ça résout le problème.
-
-❌ Cas 2 : Python n’est pas installé
-Installer Python correctement (important ⚠️)
-
-Va sur
-👉 https://www.python.org/downloads/windows/
-
-Télécharge Python 3.11 ou 3.12
-
-⚠️ COCHE ABSOLUMENT :
-
-☑ Add Python to PATH
-
-
-Clique sur Install Now
-
-Ensuite, ferme et rouvre PowerShell, puis :
-
-python --version
-python -m pip install streamlit
-
-🧪 Vérifier que Streamlit est installé
-python -m streamlit --version
-
-
-Si tu vois une version → tout est OK 🎉
-
-🚀 Lancer ton app
-
-Place-toi dans ton dossier projet :
-
-cd chemin\vers\ton_projet
-
-
-Puis :
-
-python -m streamlit run menu.py
-
-
-
-### Lancement utilisateur
-
-🧪 2️⃣ Installation automatique (côté utilisateur)
-
-Quelqu’un qui clone ton projet fait simplement :
-
-python -m venv venv
-venv\Scripts\activate
-python -m pip install -r requirements.txt
-python -m streamlit run app.py
+La page d'accueil affiche :
+- Vue d'ensemble par compte (solde, revenus, dépenses)
+- Total global de tous les comptes
+- Récapitulatif mensuel des transactions
+- Liste des 10 dernières transactions
