@@ -4,6 +4,7 @@ from datetime import datetime
 from utils.auth import require_login
 from utils.sidebar import render_sidebar
 from utils.config import apply_compact_layout
+from utils.storage import load_transactions, save_transactions
 
 st.set_page_config(page_title="Compte Julien", layout="wide")
 apply_compact_layout()
@@ -21,7 +22,7 @@ if not st.session_state.get("logged_in", False):
 
 # Initialiser les données dans session_state si nécessaire
 if "julien_transactions" not in st.session_state:
-    st.session_state.julien_transactions = []
+    st.session_state.julien_transactions = load_transactions("julien")
 
 # Formulaire d'ajout de transaction
 st.subheader("➕ Ajouter une transaction")
@@ -38,13 +39,16 @@ with col4:
 
 if st.button("Ajouter", use_container_width=True):
     if description:
-        st.session_state.julien_transactions.append({
+        transaction = {
             "Date": date.strftime("%Y-%m-%d"),
             "Description": description,
             "Montant": montant,
             "Catégorie": categorie
-        })
-        st.success("✅ Transaction ajoutée")
+        }
+        st.session_state.julien_transactions.append(transaction)
+        # Sauvegarder les données
+        save_transactions("julien", st.session_state.julien_transactions)
+        st.success("✅ Transaction ajoutée et sauvegardée")
         st.rerun()
     else:
         st.error("La description est obligatoire")
@@ -78,6 +82,11 @@ if st.session_state.julien_transactions:
     
     # Bouton pour effacer les données
     if st.button("🗑️ Effacer toutes les transactions", type="secondary"):
+        st.session_state.julien_transactions = []
+        save_transactions("julien", [])
+        st.rerun()
+else:
+    st.info("Aucune transaction enregistrée. Ajoutez-en une ci-dessus.")
         st.session_state.julien_transactions = []
         st.rerun()
 else:

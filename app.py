@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from utils.config import __version__, APP_NAME, CONTACT_EMAIL, apply_compact_layout
 from utils.sidebar import render_sidebar
+from utils.storage import load_data
 
 st.set_page_config(
     page_title=APP_NAME,
@@ -10,6 +11,20 @@ st.set_page_config(
 )
 
 apply_compact_layout()
+
+# Charger les données au démarrage
+@st.cache_resource
+def initialize_session_data():
+    """Charge les données persistantes au démarrage de l'application."""
+    data = load_data()
+    if "lucile_transactions" not in st.session_state:
+        st.session_state.lucile_transactions = data.get("lucile_transactions", [])
+    if "julien_transactions" not in st.session_state:
+        st.session_state.julien_transactions = data.get("julien_transactions", [])
+    if "commun_transactions" not in st.session_state:
+        st.session_state.commun_transactions = data.get("commun_transactions", [])
+
+initialize_session_data()
 
 # Afficher le menu de navigation
 render_sidebar()

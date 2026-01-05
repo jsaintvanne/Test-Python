@@ -3,7 +3,7 @@ import streamlit as st
 
 
 __version__ = "0.1.0"
-APP_NAME = "Streamlit Playground"
+APP_NAME = "Application de suivi de comptes"
 CONTACT_EMAIL = "j.saintvanne@gmail.com"
 
 

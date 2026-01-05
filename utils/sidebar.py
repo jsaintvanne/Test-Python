@@ -10,6 +10,7 @@ def render_sidebar():
         st.page_link("pages/1_lucile.py", label="💰 Compte Lucile")
         st.page_link("pages/2_julien.py", label="💰 Compte Julien")
         st.page_link("pages/3_commun.py", label="💑 Compte Commun")
+        st.page_link("pages/5_pret.py", label="🏦 Suivi des prêts")
         
         st.markdown("---")
         
