@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import plotly.express as px
+import plotly.graph_objects as go
 from utils.config import __version__, APP_NAME, CONTACT_EMAIL, apply_compact_layout
 from utils.sidebar import render_sidebar
 from utils.storage import load_data
@@ -11,6 +13,23 @@ st.set_page_config(
 )
 
 apply_compact_layout()
+
+# Icones par catégorie pour les affichages
+CATEGORY_ICONS = {
+    "Alimentation": "🍽️",
+    "Transport": "🚌",
+    "Loisirs": "🎯",
+    "Santé": "💊",
+    "Logement": "🏠",
+    "Autre": "📦"
+}
+
+
+def add_category_icon(category: str) -> str:
+    """Retourne la catégorie préfixée de son icône."""
+    if not category:
+        return "📦 Autre"
+    return f"{CATEGORY_ICONS.get(category, '📦')} {category}"
 
 # Charger les données au démarrage
 @st.cache_resource
@@ -29,8 +48,9 @@ initialize_session_data()
 # Afficher le menu de navigation
 render_sidebar()
 
-st.title(f"🏠 {APP_NAME}")
-st.caption("Tableau de bord des dépenses mensuelles")
+# En-tête du tableau de bord d'accueil
+st.title("📊 Tableau de bord financier")
+st.caption("Vue globale – Mois en cours")
 
 # Vérifier si l'utilisateur est connecté
 logged_in = st.session_state.get("logged_in", False)
@@ -57,92 +77,120 @@ lucile_trans = st.session_state.get("lucile_transactions", [])
 julien_trans = st.session_state.get("julien_transactions", [])
 commun_trans = st.session_state.get("commun_transactions", [])
 
-# Calculer les totaux par compte
+# Helpers
+def format_eur(amount: float) -> str:
+    txt = f"{amount:,.0f} €" if abs(amount) >= 1 else f"{amount:,.2f} €"
+    return txt.replace(",", " ")
+
 def calculer_stats(transactions):
     if not transactions:
-        return {"total": 0, "revenus": 0, "depenses": 0}
+        return {"total": 0.0, "revenus": 0.0, "depenses": 0.0}
     df = pd.DataFrame(transactions)
     return {
-        "total": df["Montant"].sum(),
-        "revenus": df[df["Montant"] > 0]["Montant"].sum(),
-        "depenses": df[df["Montant"] < 0]["Montant"].sum()
+        "total": float(df["Montant"].sum()),
+        "revenus": float(df[df["Montant"] > 0]["Montant"].sum()),
+        "depenses": float(df[df["Montant"] < 0]["Montant"].sum())
     }
 
 stats_lucile = calculer_stats(lucile_trans)
 stats_julien = calculer_stats(julien_trans)
 stats_commun = calculer_stats(commun_trans)
 
-# Afficher les métriques par compte
-st.subheader("📊 Vue d'ensemble par compte")
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("💰 Compte Lucile", f"{stats_lucile['total']:.2f} €")
-    st.caption(f"↗️ Revenus: {stats_lucile['revenus']:.2f} €")
-    st.caption(f"↘️ Dépenses: {stats_lucile['depenses']:.2f} €")
-
-with col2:
-    st.metric("💰 Compte Julien", f"{stats_julien['total']:.2f} €")
-    st.caption(f"↗️ Revenus: {stats_julien['revenus']:.2f} €")
-    st.caption(f"↘️ Dépenses: {stats_julien['depenses']:.2f} €")
-
-with col3:
-    st.metric("💑 Compte Commun", f"{stats_commun['total']:.2f} €")
-    st.caption(f"↗️ Revenus: {stats_commun['revenus']:.2f} €")
-    st.caption(f"↘️ Dépenses: {stats_commun['depenses']:.2f} €")
-
-st.markdown("---")
-
-# Calculer le total global
+# Ligne de métriques: Total, Ju, Lulu, Commun
 total_global = stats_lucile['total'] + stats_julien['total'] + stats_commun['total']
-revenus_global = stats_lucile['revenus'] + stats_julien['revenus'] + stats_commun['revenus']
-depenses_global = stats_lucile['depenses'] + stats_julien['depenses'] + stats_commun['depenses']
-
-st.subheader("💎 Total global")
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.metric("Solde total", f"{total_global:.2f} €")
-with col2:
-    st.metric("Total revenus", f"{revenus_global:.2f} €")
-with col3:
-    st.metric("Total dépenses", f"{depenses_global:.2f} €")
+col_total, col_ju, col_lulu, col_comm = st.columns(4)
+with col_total:
+    st.metric("💰 Total", format_eur(total_global))
+with col_ju:
+    st.metric("👤 Ju", format_eur(stats_julien['total']))
+with col_lulu:
+    st.metric("👤 Lulu", format_eur(stats_lucile['total']))
+with col_comm:
+    st.metric("👥 Commun", format_eur(stats_commun['total']))
 
 st.markdown("---")
-
-# Tableau récapitulatif des dépenses mensuelles
-st.subheader("📅 Récapitulatif mensuel")
 
 # Combiner toutes les transactions
 all_transactions = []
 for trans in lucile_trans:
-    all_transactions.append({**trans, "Compte": "Lucile"})
+    all_transactions.append({**trans, "Compte": "Lulu"})
 for trans in julien_trans:
-    all_transactions.append({**trans, "Compte": "Julien"})
+    all_transactions.append({**trans, "Compte": "Ju"})
 for trans in commun_trans:
     all_transactions.append({**trans, "Compte": "Commun"})
 
 if all_transactions:
     df = pd.DataFrame(all_transactions)
-    df["Date"] = pd.to_datetime(df["Date"])
+    df["Date"] = pd.to_datetime(df["Date"]) 
     df["Mois"] = df["Date"].dt.strftime("%Y-%m")
-    
-    # Grouper par mois
-    monthly = df.groupby("Mois").agg({
-        "Montant": ["sum", "count"]
-    }).reset_index()
-    monthly.columns = ["Mois", "Total (€)", "Nb transactions"]
-    monthly["Total (€)"] = monthly["Total (€)"].round(2)
-    
-    st.dataframe(monthly, use_container_width=True, hide_index=True)
-    
+
+    # 📈 Évolution des soldes (courbe) par compte (cumul)
+    st.subheader("📈 Évolution des soldes (courbe)")
+    df_sorted = df.sort_values(["Compte", "Date"]) 
+    df_sorted["Solde"] = df_sorted.groupby("Compte")["Montant"].cumsum()
+    fig_lines = px.line(
+        df_sorted,
+        x="Date",
+        y="Solde",
+        color="Compte",
+        markers=True,
+        labels={"Solde": "Solde (€)", "Date": "Date"},
+        title=None
+    )
+    fig_lines.add_hline(y=0, line_dash="dash", line_color="#666")
+    fig_lines.update_layout(height=350, legend_title_text="Comptes")
+    st.plotly_chart(fig_lines, width="stretch")
+
     st.markdown("---")
-    
-    # Dernières transactions
-    st.subheader("🕐 Dernières transactions")
-    df_sorted = df.sort_values("Date", ascending=False).head(10)
-    df_display = df_sorted[["Date", "Description", "Montant", "Catégorie", "Compte"]].copy()
-    df_display["Date"] = df_display["Date"].dt.strftime("%Y-%m-%d")
-    st.dataframe(df_display, use_container_width=True, hide_index=True)
+
+    # Deux colonnes: Dépenses par catégorie (camembert) | Résumé du mois
+    left, right = st.columns(2)
+
+    # Filtre mois en cours
+    current_month = datetime.now().strftime("%Y-%m")
+    df_month = df[df["Mois"] == current_month].copy()
+
+    with left:
+        st.subheader("📊 Dépenses par catégorie")
+        expenses_by_category = (
+            df_month[df_month["Montant"] < 0]
+            .groupby("Catégorie")["Montant"].sum()
+            .abs()
+            .sort_values(ascending=False)
+        )
+        if not expenses_by_category.empty:
+            fig_pie = go.Figure(data=[go.Pie(
+                labels=[add_category_icon(cat) for cat in expenses_by_category.index],
+                values=expenses_by_category.values,
+                hole=0.0
+            )])
+            fig_pie.update_layout(height=350, showlegend=True)
+            st.plotly_chart(fig_pie, width="stretch")
+        else:
+            st.info("Aucune dépense ce mois-ci")
+
+    with right:
+        st.subheader("📌 Résumé du mois")
+        depenses_mois = float(df_month[df_month["Montant"] < 0]["Montant"].sum())
+        revenus_mois = float(df_month[df_month["Montant"] > 0]["Montant"].sum())
+        difference = revenus_mois + depenses_mois  # dépenses négatives
+
+        st.write(f"- Dépenses : {format_eur(abs(depenses_mois))}")
+        st.write(f"- Revenus : {format_eur(revenus_mois)}")
+        sign = "+" if difference >= 0 else ""
+        st.write(f"- Différence : {sign}{format_eur(difference)}")
+
+        # Plus grosse dépense
+        biggest = None
+        if not df_month.empty:
+            df_exp = df_month[df_month["Montant"] < 0]
+            if not df_exp.empty:
+                biggest = df_exp.loc[df_exp["Montant"].idxmin()]
+        if biggest is not None:
+            label = biggest.get("Catégorie") or biggest.get("Description") or "Dépense"
+            st.write(f"- Plus grosse dépense : {label} ({format_eur(abs(biggest['Montant']))})")
+        else:
+            st.write("- Plus grosse dépense : N/A")
 else:
     st.info("Aucune transaction enregistrée. Commencez par ajouter des transactions dans les pages de comptes.")
 
